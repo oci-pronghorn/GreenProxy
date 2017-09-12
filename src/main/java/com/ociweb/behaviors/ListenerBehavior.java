@@ -22,17 +22,9 @@ public class ListenerBehavior implements RestListener {
         httpRequestReader.getRoutePath(route);
         httpRequestReader.headers(headers);
 
-        relayRequestChannel.publishTopic(routingTopic, writer -> {
-            writer.writeLong(httpRequestReader.getRequestContext());
-            writer.writeLong(httpRequestReader.getSequenceCode());
-        }, WaitFor.All);
+        relayRequestChannel.publishTopic(routingTopic, httpRequestReader::handoff, WaitFor.All);
 
-
-        Writable payload = writer -> {
-            httpRequestReader.openPayloadData(reader -> {
-                reader.readInto(writer, reader.available());
-            });
-        };
+        Writable payload = writer -> httpRequestReader.openPayloadData(reader -> reader.readInto(writer, reader.available()));
 
         switch (httpRequestReader.getVerb()) {
             case GET:

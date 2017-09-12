@@ -8,34 +8,23 @@ import static com.ociweb.pronghorn.network.ServerCoordinator.END_RESPONSE_MASK;
 
 public class ResponseBehavior implements PubSubListener, HTTPResponseListener {
     private GreenCommandChannel responseRelayChannel;
-    private long connectionId = 0;
-    private long seqenceCode = 0;
+    private final HTTPResponder httpResponder;
+    private final StringBuilder headers = new StringBuilder();
 
     public ResponseBehavior(GreenRuntime runtime) {
-        this.responseRelayChannel = runtime.newCommandChannel(NET_RESPONDER);
+        this.responseRelayChannel = runtime.newCommandChannel();
+        this.httpResponder = new HTTPResponder(responseRelayChannel, 256 * 1024);
     }
 
     @Override
     public boolean message(CharSequence charSequence, BlobReader blobReader) {
-        this.connectionId = blobReader.readLong();
-        this.seqenceCode = blobReader.readLong();
-        return true;
+        return httpResponder.readReqesterData(blobReader);
     }
 
     @Override
     public boolean responseHTTP(HTTPResponseReader responseReader) {
-        Writable payload = writer -> {
-            responseReader.openPayloadData(reader -> {
-                reader.readInto(writer, reader.available());
-            });
-        };
-
-        return responseRelayChannel.publishHTTPResponse(
-                connectionId,
-                seqenceCode,
-                responseReader.statusCode(),
-                END_RESPONSE_MASK,
-                responseReader.contentType(),
-                payload);
+        Writable payload = writer -> responseReader.openPayloadData(reader -> reader.readInto(writer, reader.available()));
+        responseReader.headers(headers);
+        return httpResponder.respondWith(false, headers.toString(), payload);
     }
 }
