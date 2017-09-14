@@ -17,21 +17,7 @@ public class AppTest {
 	 @Test
 	    public void testApp()
 	    {
-		    GreenRuntime runtime = GreenRuntime.test(new GreenProxy());	    	
-	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
-
-	    	scheduler.startup();
-	    	
-	    	int iterations = 10;
-			while (--iterations >= 0) {
-				    		
-					scheduler.run();
-					
-					//test application here
-					
-			}
-			
-			scheduler.shutdown();
-			
+			long timeoutMS = 10_000;
+		    GreenRuntime.testUntilShutdownRequested(new GreenProxy(), timeoutMS);
 	    }
 }
