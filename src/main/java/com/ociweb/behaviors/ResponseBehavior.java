@@ -2,7 +2,7 @@ package com.ociweb.behaviors;
 
 import com.ociweb.gl.api.*;
 import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 import static com.ociweb.pronghorn.network.ServerCoordinator.END_RESPONSE_MASK;
 
@@ -17,8 +17,8 @@ public class ResponseBehavior implements PubSubListener, HTTPResponseListener {
     }
 
     @Override
-    public boolean message(CharSequence charSequence, BlobReader blobReader) {
-        return httpResponder.readReqesterData(blobReader);
+    public boolean message(CharSequence charSequence, ChannelReader channelReader) {
+        return httpResponder.readReqesterData(channelReader);
     }
 
     @Override
