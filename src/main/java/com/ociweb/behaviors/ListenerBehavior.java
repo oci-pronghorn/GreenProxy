@@ -1,6 +1,12 @@
 package com.ociweb.behaviors;
 
 import com.ociweb.gl.api.*;
+import com.ociweb.pronghorn.network.config.HTTPHeader;
+import com.ociweb.pronghorn.network.config.HTTPHeaderDefaults;
+import com.ociweb.pronghorn.network.config.HTTPSpecification;
+import com.ociweb.pronghorn.pipe.ChannelReader;
+import com.ociweb.pronghorn.util.AppendableProxy;
+import com.ociweb.pronghorn.util.Appendables;
 
 public class ListenerBehavior implements RestListener {
     private final StringBuilder route = new StringBuilder();
@@ -19,8 +25,12 @@ public class ListenerBehavior implements RestListener {
 
     @Override
     public boolean restRequest(HTTPRequestReader httpRequestReader) {
+        headers.setLength(0);
+        route.setLength(0);
+
         httpRequestReader.getRoutePath(route);
-        httpRequestReader.headers(headers);
+
+        prepareHeadersForProxiedRequest(httpRequestReader, headers);
 
         relayRequestChannel.publishTopic(routingTopic, httpRequestReader::handoff, WaitFor.All);
 
@@ -49,5 +59,21 @@ public class ListenerBehavior implements RestListener {
                 break;
         }
         return true;
+    }
+
+    private Appendable prepareHeadersForProxiedRequest(HTTPRequestReader httpRequestReader, Appendable destination) {
+
+        AppendableProxy appendableProxy = Appendables.proxy(destination);
+        HTTPSpecification spec = httpRequestReader.getSpec();
+
+        httpRequestReader.visitHeaders((HTTPHeader header, ChannelReader channelReader) ->  {
+            if(header != HTTPHeaderDefaults.HOST){
+                appendableProxy.append(header.writingRoot());
+                header.writeValue(appendableProxy, spec, channelReader);
+                appendableProxy.append("\r\n");
+            }
+        });
+
+        return destination;
     }
 }

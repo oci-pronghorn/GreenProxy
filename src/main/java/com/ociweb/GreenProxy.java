@@ -19,8 +19,7 @@ public class GreenProxy implements GreenApp
         String routingTopic = "routingTopic";
         ResponseBehavior responder = new ResponseBehavior(runtime);
         int responseRoutingId = runtime.addResponseListener(responder).addSubscription(routingTopic).getId();
-        ListenerBehavior listen = new ListenerBehavior("www.apple.com", 80, runtime, responseRoutingId, routingTopic);
+        ListenerBehavior listen = new ListenerBehavior("localhost", 9080, runtime, responseRoutingId, routingTopic);
         runtime.addRestListener(listen).includeAllRoutes();
-
     }
 }
