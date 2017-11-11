@@ -32,7 +32,7 @@ public class ListenerBehavior implements RestListener {
 
         prepareHeadersForProxiedRequest(httpRequestReader, headers);
 
-        relayRequestChannel.publishTopic(routingTopic, httpRequestReader::handoff, WaitFor.All);
+        relayRequestChannel.publishTopic(routingTopic, httpRequestReader::handoff, WaitFor.None);
 
         Writable payload = writer -> httpRequestReader.openPayloadData(reader -> reader.readInto(writer, reader.available()));
 
@@ -61,16 +61,15 @@ public class ListenerBehavior implements RestListener {
         return true;
     }
 
-    private Appendable prepareHeadersForProxiedRequest(HTTPRequestReader httpRequestReader, Appendable destination) {
+    private Appendable prepareHeadersForProxiedRequest(HTTPRequestReader httpRequestReader, StringBuilder destination) {
 
-        AppendableProxy appendableProxy = Appendables.proxy(destination);
         HTTPSpecification spec = httpRequestReader.getSpec();
 
         httpRequestReader.visitHeaders((HTTPHeader header, ChannelReader channelReader) ->  {
             if(header != HTTPHeaderDefaults.HOST){
-                appendableProxy.append(header.writingRoot());
-                header.writeValue(appendableProxy, spec, channelReader);
-                appendableProxy.append("\r\n");
+                destination.append(header.writingRoot());
+                header.writeValue(destination, spec, channelReader);
+                destination.append("\r\n");
             }
         });
 
