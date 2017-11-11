@@ -31,6 +31,6 @@ public class ResponseBehavior implements PubSubListener, HTTPResponseListener {
 
         Writable payload = writer -> responseReader.openPayloadData(reader -> reader.readInto(writer, reader.available()));
 
-        return httpResponder.respondWith(responseReader.statusCode(), false, responseReader.contentType(), payload);
+        return httpResponder.respondWith(false, headers.toString(), payload);
     }
 }
