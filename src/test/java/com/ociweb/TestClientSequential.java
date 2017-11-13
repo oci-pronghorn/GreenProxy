@@ -44,13 +44,10 @@ public class TestClientSequential implements GreenApp {
 			if (--countDown>0) {
 				return cmd3.publishTopic("makeCall");
 			} else {
-				long avgNs = totalTime/totalCycles;
-				Appendables.appendNearestTimeUnit(System.out, avgNs, " latency on "+session);
-				try {
-					Thread.sleep(1);
-				} catch (Exception e) {
-					//ignore
-				}	
+				System.out.println();
+				Appendables.appendNearestTimeUnit(System.out, totalTime/totalCycles, " latency on "+session);
+				System.out.println();
+				
 				cmd3.shutdown();
 				return true;
 			}

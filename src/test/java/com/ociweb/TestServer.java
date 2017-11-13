@@ -19,7 +19,7 @@ public class TestServer implements GreenApp {
 		builder.enableServer(false, false, "127.0.0.1",port);
 		builder.defineRoute("/testPage");
 		
-		builder.limitThreads(2);
+		builder.limitThreads(4);
 		
 		//builder.enableTelemetry();
 		

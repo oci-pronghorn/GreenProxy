@@ -74,13 +74,9 @@ public class TestClientParallel implements GreenApp {
 			});
 			
 			if (--countDownReceived<=0) {
-				long avgNs = totalTime/totalCycles;
-				Appendables.appendNearestTimeUnit(System.out, duration, " latency on "+session+"\n");
-				try {
-						Thread.sleep(1);
-					} catch (Exception e) {
-						//ignore
-					}		
+				System.out.println();
+				Appendables.appendNearestTimeUnit(System.out, totalTime/totalCycles, " latency on "+session+"\n");
+				System.out.println();
 				cmd3.shutdown();
 			}
 			return true;
