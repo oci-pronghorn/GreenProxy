@@ -41,7 +41,7 @@ public class TestClientParallel implements GreenApp {
 		totalCycles = cycles;
 		session = new HTTPSession("127.0.0.1",port);
 	
-		inFlightBits = 14;
+		inFlightBits = 18;
 		
 		inFlight = 1<<inFlightBits;
 		inFlightMask = inFlight-1;
@@ -57,13 +57,17 @@ public class TestClientParallel implements GreenApp {
 	}
 
 	@Override
-	public void declareBehavior(GreenRuntime runtime) {
+	public void declareBehavior(final GreenRuntime runtime) {
 		
-		GreenCommandChannel cmd3 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 		int id = runtime.addResponseListener((r)->{
-			long duration = System.nanoTime()-callTime[inFlightMask & (int)callTimeTail++];
+			long startTime = callTime[inFlightMask & (int)callTimeTail++];
+			if (0==startTime) {
+				throw new UnsupportedOperationException();
+			}
+			long duration = System.nanoTime()-startTime;
 			
 			totalTime += duration;
+			
 			
 			r.openPayloadData((c)->{
 		
@@ -77,7 +81,7 @@ public class TestClientParallel implements GreenApp {
 				System.out.println();
 				Appendables.appendNearestTimeUnit(System.out, totalTime/totalCycles, " latency on "+session+"\n");
 				System.out.println();
-				cmd3.shutdown();
+				runtime.shutdownRuntime();
 			}
 			return true;
 		}).getId();

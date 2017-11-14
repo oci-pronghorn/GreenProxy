@@ -1,39 +1,36 @@
 package com.ociweb;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.concurrent.TimeUnit;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.ociweb.gl.api.GreenRuntime;
-import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 
 /**
  * Unit test for simple App.
  */
 public class AppTest { 
 
-		private final long timeoutMS = 9_000;
+		private final long timeoutMS = 240_000;
 	    
 		@Test
 	    public void testBackingServerSequential() {
 	    	GreenRuntime.run(new TestServer(8082));
 	    	waitForServer("http://127.0.0.1:8082/");
-		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(12000,8082), timeoutMS);	    	
+		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(30000,8082), timeoutMS);	    	
 	    }
 	    
 	    @Test
 	    public void testBackingServerConcurrent() {
 	    	GreenRuntime.run(new TestServer(8082));
 	    	waitForServer("http://127.0.0.1:8082/");
-	    	GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientParallel(12000,8082), timeoutMS);
+	    	GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientParallel(30000,8082), timeoutMS);
         }
 		
 		
