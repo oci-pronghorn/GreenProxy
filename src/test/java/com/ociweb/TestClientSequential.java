@@ -15,11 +15,13 @@ public class TestClientSequential implements GreenApp {
 	
 	private long totalTime = 0;
 	private final int totalCycles;
-	
-	public TestClientSequential(int cycles, int port) {
+    private final String route;
+    
+	public TestClientSequential(int cycles, int port, String route) {
 		countDown = cycles;
 		totalCycles = cycles;
 		session = new HTTPSession("127.0.0.1",port);
+		this.route = route;
 	}
 	
 	@Override
@@ -57,7 +59,8 @@ public class TestClientSequential implements GreenApp {
 		GreenCommandChannel cmd2 = runtime.newCommandChannel(NET_REQUESTER);
 		runtime.addPubSubListener((t,p)->{
 			callTime = System.nanoTime();
-			return cmd2.httpGet(session, "/testPage", id);
+			
+			return cmd2.httpGet(session, route, id);
 		}).addSubscription("makeCall");
 	
 	}

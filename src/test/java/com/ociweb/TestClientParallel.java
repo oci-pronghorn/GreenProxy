@@ -33,14 +33,16 @@ public class TestClientParallel implements GreenApp {
 	
 	private long rateInMS = 1;
 	private int multiplier = 4;
+	private final String route;
+	private final boolean doTest;
 	
-	public TestClientParallel(int cycles, int port) {
+	public TestClientParallel(int cycles, int port, String route, boolean doTest) {
 		countDownSent = cycles;
 		countDownReceived = cycles;
-		
+		this.route = route;
 		totalCycles = cycles;
 		session = new HTTPSession("127.0.0.1",port);
-	
+		this.doTest = doTest;
 		inFlightBits = 18;
 		
 		inFlight = 1<<inFlightBits;
@@ -70,9 +72,10 @@ public class TestClientParallel implements GreenApp {
 			
 			
 			r.openPayloadData((c)->{
-		
-				if (!c.equalBytes("exampleResponse".getBytes())) {
-					throw new RuntimeException("Unexpected Data");
+				if (doTest) {
+					if (!c.equalBytes("exampleResponse".getBytes())) {
+						throw new RuntimeException("Unexpected Data");
+					}
 				}
 				
 			});
@@ -96,7 +99,7 @@ public class TestClientParallel implements GreenApp {
 				if (countDownSent>0) {
 					if (callTimeHead-callTimeTail<inFlight) {
 						callTime[inFlightMask & (int)callTimeHead++] = System.nanoTime();
-						if (cmd1.httpGet(session, "/testPage", id)) {
+						if (cmd1.httpGet(session, route, id)) {
 							countDownSent--;
 						} else {
 							logger.warn("output queue is full");						

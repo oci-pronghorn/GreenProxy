@@ -17,20 +17,24 @@ import com.ociweb.gl.api.GreenRuntime;
  */
 public class AppTest { 
 
-		private final long timeoutMS = 240_000;
+		private final long timeoutMS = 60_000;
 	    
 		@Test
 	    public void testBackingServerSequential() {
 	    	GreenRuntime.run(new TestServer(8082));
 	    	waitForServer("http://127.0.0.1:8082/");
-		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(30000,8082), timeoutMS);	    	
+	    	String route = "/testPage";
+	    	
+		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000,8082,route), timeoutMS);	    	
 	    }
 	    
 	    @Test
 	    public void testBackingServerConcurrent() {
 	    	GreenRuntime.run(new TestServer(8082));
 	    	waitForServer("http://127.0.0.1:8082/");
-	    	GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientParallel(30000,8082), timeoutMS);
+	    	String route = "/testPage";
+	    	
+	    	GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientParallel(20000,8082, route, true), timeoutMS);
         }
 		
 		
@@ -45,8 +49,9 @@ public class AppTest {
 	    	GreenRuntime.run(new GreenProxy("127.0.0.1",8082)); // 8786
 	    	waitForServer("http://127.0.0.1:8786/");
 	    	
+	    	String route = "/testPage";
 	    	//GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientParallel(12000,8786), timeoutMS);	 
-		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(12000,8786), timeoutMS);	
+		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000,8786, route), timeoutMS);	
 	    }
 
 		private void waitForServer(String url) {
@@ -77,5 +82,16 @@ public class AppTest {
 				throw new RuntimeException(ex);
 			}
 		}
+		
+		@Test
+	    public void testBackingFileServerSequential() {
+	    	GreenRuntime.run(new TestFileServer(8082));
+	    	waitForServer("http://127.0.0.1:8082/");
+	    	String route = "/index.html";
+	    	
+	     	//GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientParallel(20000,8082, route, false), timeoutMS);
+
+		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000,8082, route), timeoutMS);	    	
+	    }
 		
 }
