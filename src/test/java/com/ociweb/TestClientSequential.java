@@ -39,7 +39,7 @@ public class TestClientSequential implements GreenApp {
 		
 		GreenCommandChannel cmd3 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 		int id = runtime.addResponseListener((r)->{
-			long duration = System.nanoTime()-callTime;
+			long duration = System.nanoTime() - callTime;
 	
 			totalTime += duration;
 			

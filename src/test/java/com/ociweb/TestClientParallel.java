@@ -13,7 +13,7 @@ import com.ociweb.pronghorn.util.Appendables;
 
 public class TestClientParallel implements GreenApp {
 	
-	private final HTTPSession session;
+	private final HTTPSession[] sessions;
 	private int countDownSent;
 	private int countDownReceived;
 	
@@ -32,7 +32,7 @@ public class TestClientParallel implements GreenApp {
 	private final int totalCycles;
 	
 	private long rateInMS = 1;
-	private int multiplier = 4;
+	private int multiplier = 50;
 	private final String route;
 	private final boolean doTest;
 	
@@ -41,7 +41,12 @@ public class TestClientParallel implements GreenApp {
 		countDownReceived = cycles;
 		this.route = route;
 		totalCycles = cycles;
-		session = new HTTPSession("127.0.0.1",port);
+		
+		int s = multiplier;
+		sessions = new HTTPSession[s];
+		while (--s>=0) {		
+			sessions[s] = new HTTPSession("127.0.0.1",port,s);
+		}
 		this.doTest = doTest;
 		inFlightBits = 18;
 		
@@ -56,11 +61,14 @@ public class TestClientParallel implements GreenApp {
 		builder.useInsecureNetClient();
 		builder.setTimerPulseRate(rateInMS);
 		
+		//builder.enableTelemetry(8099);
+		builder.limitThreads(4);
 	}
 
 	@Override
 	public void declareBehavior(final GreenRuntime runtime) {
 		
+				
 		int id = runtime.addResponseListener((r)->{
 			long startTime = callTime[inFlightMask & (int)callTimeTail++];
 			if (0==startTime) {
@@ -69,7 +77,6 @@ public class TestClientParallel implements GreenApp {
 			long duration = System.nanoTime()-startTime;
 			
 			totalTime += duration;
-			
 			
 			r.openPayloadData((c)->{
 				if (doTest) {
@@ -82,7 +89,7 @@ public class TestClientParallel implements GreenApp {
 			
 			if (--countDownReceived<=0) {
 				System.out.println();
-				Appendables.appendNearestTimeUnit(System.out, totalTime/totalCycles, " latency on "+session+"\n");
+				Appendables.appendNearestTimeUnit(System.out, totalTime/totalCycles, " latency \n");
 				System.out.println();
 				runtime.shutdownRuntime();
 			}
@@ -91,18 +98,19 @@ public class TestClientParallel implements GreenApp {
 		
 		
 		GreenCommandChannel cmd1 = runtime.newCommandChannel(NET_REQUESTER);
-		cmd1.ensureHTTPClientRequesting(5000, 30);
+		cmd1.ensureHTTPClientRequesting(12, 30);
+		
 		runtime.addTimePulseListener((t,i)->{
 			
 			int m = multiplier;
-			while (--m>=0) {
+			while (--m >= 0) {
 				if (countDownSent>0) {
 					if (callTimeHead-callTimeTail<inFlight) {
-						callTime[inFlightMask & (int)callTimeHead++] = System.nanoTime();
-						if (cmd1.httpGet(session, route, id)) {
+						if (cmd1.httpGet(sessions[m], route, id)) {
+							//NOTE: these already have time for get calls sitting
+							//      in the outgoing pipe, if that pipe is long
+							callTime[inFlightMask & (int)callTimeHead++] = System.nanoTime();
 							countDownSent--;
-						} else {
-							logger.warn("output queue is full");						
 						}
 					} else {
 						logger.warn("increase inFlightBits value.");

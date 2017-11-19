@@ -17,11 +17,12 @@ import com.ociweb.gl.api.GreenRuntime;
  */
 public class AppTest { 
 
-		private final long timeoutMS = 60_000;
-	    
+		private final long timeoutMS = 260_000;
+
+		
 		@Test
 	    public void testBackingServerSequential() {
-	    	GreenRuntime.run(new TestServer(8082));
+	    	GreenRuntime.run(new TestServer(false, 8082, true));
 	    	waitForServer("http://127.0.0.1:8082/");
 	    	String route = "/testPage";
 	    	
@@ -30,11 +31,16 @@ public class AppTest {
 	    
 	    @Test
 	    public void testBackingServerConcurrent() {
-	    	GreenRuntime.run(new TestServer(8082));
+	    	GreenRuntime.run(new TestServer(false, 8082, true));
 	    	waitForServer("http://127.0.0.1:8082/");
 	    	String route = "/testPage";
 	    	
-	    	GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientParallel(20000,8082, route, true), timeoutMS);
+	    	//NOTE: server is picking the same route for every call??
+	    	
+	    	GreenRuntime.testConcurrentUntilShutdownRequested(
+	    			new TestClientParallel(20000,8082, route, true), timeoutMS);
+	    	
+	    	
         }
 		
 		
@@ -42,7 +48,7 @@ public class AppTest {
 	    public void textProxyServer() {
 			
 			//startup backing server
-			GreenRuntime.run(new TestServer(8082));
+			GreenRuntime.run(new TestServer(false, 8082, false));
 	    	waitForServer("http://127.0.0.1:8082/");
 	    	
 	    	//startup proxy server in front of backing server
@@ -85,13 +91,12 @@ public class AppTest {
 		
 		@Test
 	    public void testBackingFileServerSequential() {
-	    	GreenRuntime.run(new TestFileServer(8082));
-	    	waitForServer("http://127.0.0.1:8082/");
+	    	GreenRuntime.run(new TestFileServer(8083));
+	    	waitForServer("http://127.0.0.1:8083/");
 	    	String route = "/index.html";
 	    	
-	     	//GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientParallel(20000,8082, route, false), timeoutMS);
+	    	GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000, 8083, route), timeoutMS);	    	
 
-		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000,8082, route), timeoutMS);	    	
 	    }
 		
 }

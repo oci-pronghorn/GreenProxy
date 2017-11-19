@@ -2,32 +2,52 @@ package com.ociweb;
 
 import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenApp;
+import com.ociweb.gl.api.GreenAppParallel;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
+import com.ociweb.gl.api.HTTPServerConfig;
 import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
 
-public class TestServer implements GreenApp {
+public class TestServer implements GreenAppParallel  {
 
 	private final int port;
+	private final boolean tls;
+	private final boolean telemtry;
 	
-	public TestServer(int port) {
+	public TestServer(boolean tls, int port, boolean telemtry) {
+		this.tls = tls;
 		this.port = port;
+		this.telemtry = telemtry;
 	}
 	
 	@Override
 	public void declareConfiguration(Builder builder) {
-		builder.enableServer(false, false, "127.0.0.1",port);
+		HTTPServerConfig conf = builder.useHTTP1xServer(port).setHost("127.0.0.1");
+
+		conf.setConcurrentChannelsPerDecryptUnit(10);
+		builder.parallelism(5);
+		conf.setConcurrentChannelsPerEncryptUnit(1);
+		
+		if (!tls) {
+			conf.useInsecureServer();
+		}
+				
 		builder.defineRoute("/testPage");
 		
-		builder.limitThreads(8);
+		if (telemtry) {
+			builder.enableTelemetry();
+		}
 		
-		//builder.enableTelemetry();
 		
 	}
 
 	@Override
 	public void declareBehavior(GreenRuntime runtime) {
 		
+	}
+
+	@Override
+	public void declareParallelBehavior(GreenRuntime runtime) {
 		final GreenCommandChannel cmd = runtime.newCommandChannel(NET_RESPONDER);
 		
 		runtime.addRestListener((r)->{
@@ -42,5 +62,7 @@ public class TestServer implements GreenApp {
 			
 			//return true;
 		}).includeAllRoutes();
+	
+		
 	}
 }

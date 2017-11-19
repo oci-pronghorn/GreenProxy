@@ -5,6 +5,7 @@ import com.ociweb.behaviors.ResponseBehavior;
 import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenRuntime;
+import com.ociweb.gl.api.HTTPServerConfig;
 
 public class GreenProxy implements GreenApp
 {
@@ -26,7 +27,10 @@ public class GreenProxy implements GreenApp
 	
     @Override
     public void declareConfiguration(Builder builder) {
-        builder.enableServer(false, false, "127.0.0.1", proxyPort);
+    	HTTPServerConfig conf = builder.useHTTP1xServer(proxyPort)
+    			.setHost("127.0.0.1")
+    			.useInsecureServer();
+    			
         builder.useInsecureNetClient();
         
         //builder.enableTelemetry();
