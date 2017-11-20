@@ -24,8 +24,8 @@ public class TestFileServer implements GreenAppParallel {
     	
     	builder.parallelism(4);
 		builder.limitThreads(8);
-		
-		//builder.enableTelemetry();
+		//builder.defineRoute("/${path}");
+		builder.enableTelemetry(8091);
 		
 	}
 
@@ -37,7 +37,6 @@ public class TestFileServer implements GreenAppParallel {
 	@Override
 	public void declareParallelBehavior(GreenRuntime runtime) {
 		runtime.addFileServer("./src/test/resources/site/index.html").includeAllRoutes();
-		
 	}
 
 }

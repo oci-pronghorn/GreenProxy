@@ -38,7 +38,13 @@ public class AppTest {
 	    	//NOTE: server is picking the same route for every call??
 	    	
 	    	GreenRuntime.testConcurrentUntilShutdownRequested(
-	    			new TestClientParallel(20000,8082, route, true), timeoutMS);
+	    			new TestClientBatch(20000, 50, 8082, route, true), timeoutMS);
+	    	
+	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
+	    	//		new TestClientParallel(50000, 50, 8082, route, null), timeoutMS);
+	    	
+	    	//GreenRuntime.testUntilShutdownRequested(
+	    	//		new TestClientParallel(50000, 50, 8082, route, null), timeoutMS);
 	    	
 	    	
         }
@@ -95,8 +101,29 @@ public class AppTest {
 	    	waitForServer("http://127.0.0.1:8083/");
 	    	String route = "/index.html";
 	    	
-	    	GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000, 8083, route), timeoutMS);	    	
+//	    	try {
+//				Thread.sleep(100_000);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+	    	
+	    	//GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000, 8083, route), timeoutMS);	    	
+	    	//GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientSequential(20000, 8083, route), timeoutMS);	    	
 
+	    	
+	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
+	    	//		new TestClientBatch(20000, 8083, route, false), timeoutMS);
+	    
+	    	GreenRuntime.testUntilShutdownRequested(
+	    			new TestClientBatch(20000,  50, 8083, route, false), timeoutMS);
+	    	
+	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
+	    	//		new TestClientParallel(50000, 50, 8083, route, null), timeoutMS);
+	    	
+	    	//GreenRuntime.testUntilShutdownRequested(
+	    	//		new TestClientParallel(50000, 50, 8083, route, null), timeoutMS);
+	    	
 	    }
 		
 }
