@@ -27,6 +27,7 @@ public class TestClientSequential implements GreenApp {
 	@Override
 	public void declareConfiguration(Builder builder) {
 		builder.useInsecureNetClient();
+		builder.enableTelemetry();
 	}
 
 	@Override

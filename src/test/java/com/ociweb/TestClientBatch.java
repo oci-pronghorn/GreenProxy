@@ -104,10 +104,10 @@ public class TestClientBatch implements GreenApp {
 		
 		runtime.addTimePulseListener((t,i)->{
 			
-			//TODO: this is protecting against an overload bug which happens in the client.
-			if (callTimeHead!=callTimeTail) {
-				return;//never call when we have requests in flight
-			}
+//			//TODO: this is protecting against an overload bug which happens in the client.
+//			if (callTimeHead!=callTimeTail) {
+//				return;//never call when we have requests in flight
+//			}
 			int m = multiplier;
 			while (--m >= 0) {
 				if (countDownSent>0) {

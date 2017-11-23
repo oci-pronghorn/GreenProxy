@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ociweb.gl.api.GreenRuntime;
@@ -21,36 +22,36 @@ public class AppTest {
 
 		
 		@Test
+		@Ignore
 	    public void testBackingServerSequential() {
-	    	GreenRuntime.run(new TestServer(false, 8082, true));
+	    	GreenRuntime.run(new TestServer(false, 8082, false));
 	    	waitForServer("http://127.0.0.1:8082/");
 	    	String route = "/testPage";
 	    	
-		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000,8082,route), timeoutMS);	    	
+		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(50000 ,8082,route), timeoutMS);	    	
 	    }
 	    
 	    @Test
+	    @Ignore
 	    public void testBackingServerConcurrent() {
-	    	GreenRuntime.run(new TestServer(false, 8082, true));
+	    	GreenRuntime.run(new TestServer(false, 8082, false));
 	    	waitForServer("http://127.0.0.1:8082/");
 	    	String route = "/testPage";
 	    	
 	    	//NOTE: server is picking the same route for every call??
 	    	
-	    	GreenRuntime.testConcurrentUntilShutdownRequested(
-	    			new TestClientBatch(20000, 50, 8082, route, true), timeoutMS);
-	    	
 	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
-	    	//		new TestClientParallel(50000, 50, 8082, route, null), timeoutMS);
+	    	//		new TestClientBatch(20000, 50, 8082, route, true), timeoutMS);
 	    	
-	    	//GreenRuntime.testUntilShutdownRequested(
-	    	//		new TestClientParallel(50000, 50, 8082, route, null), timeoutMS);
-	    	
+	    	GreenRuntime.testConcurrentUntilShutdownRequested(
+	    			new TestClientParallel(50000, 5, 8082, route, null), timeoutMS);
+
 	    	
         }
 		
 		
 		@Test
+		@Ignore
 	    public void textProxyServer() {
 			
 			//startup backing server
@@ -63,7 +64,7 @@ public class AppTest {
 	    	
 	    	String route = "/testPage";
 	    	//GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientParallel(12000,8786), timeoutMS);	 
-		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000,8786, route), timeoutMS);	
+		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000, 8786, route), timeoutMS);	
 	    }
 
 		private void waitForServer(String url) {
@@ -96,33 +97,28 @@ public class AppTest {
 		}
 		
 		@Test
+		@Ignore
 	    public void testBackingFileServerSequential() {
 	    	GreenRuntime.run(new TestFileServer(8083));
 	    	waitForServer("http://127.0.0.1:8083/");
 	    	String route = "/index.html";
-	    	
-//	    	try {
-//				Thread.sleep(100_000);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+
 	    	
 	    	//GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000, 8083, route), timeoutMS);	    	
 	    	//GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientSequential(20000, 8083, route), timeoutMS);	    	
 
 	    	
 	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
-	    	//		new TestClientBatch(20000, 8083, route, false), timeoutMS);
+	    	//		new TestClientBatch(20000, 50, 8083, route, false), timeoutMS);
 	    
-	    	GreenRuntime.testUntilShutdownRequested(
-	    			new TestClientBatch(20000,  50, 8083, route, false), timeoutMS);
-	    	
-	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
-	    	//		new TestClientParallel(50000, 50, 8083, route, null), timeoutMS);
+	    	//GreenRuntime.testUntilShutdownRequested(
+	    	//		new TestClientBatch(20000,  50, 8083, route, false), timeoutMS);
 	    	
 	    	//GreenRuntime.testUntilShutdownRequested(
-	    	//		new TestClientParallel(50000, 50, 8083, route, null), timeoutMS);
+	    	//		new TestClientParallel(50000, 8, 8083, route, null), timeoutMS);
+	    	
+	    	GreenRuntime.testConcurrentUntilShutdownRequested(
+	    			new TestClientParallel(50000, 8, 8083, route, null), timeoutMS);
 	    	
 	    }
 		

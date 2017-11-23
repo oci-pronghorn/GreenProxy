@@ -35,7 +35,7 @@ public class TestClientParallel implements GreenAppParallel {
 		builder.parallelism(parallel);
 		builder.setTimerPulseRate(1);
 		//builder.enableTelemetry(8099);
-		//builder.limitThreads(4);
+		//builder.limitThreads(20);
 	}
 
 	@Override
@@ -57,21 +57,17 @@ public class TestClientParallel implements GreenAppParallel {
 		
 		
 		final int id = runtime.addResponseListener((r)->{
-			long startTime = callTime[inFlightMask & (int)rf.callTimeTail++];
-			if (0==startTime) {
-				throw new UnsupportedOperationException();
-			}
-			long duration = System.nanoTime()-startTime;
+			long duration = System.nanoTime()-callTime[inFlightMask & (int)rf.callTimeTail++];
 			
 			rf.totalTime += duration;
 			
-			r.openPayloadData((c)->{
-				if (null != testValue) {
-					if (!c.equalBytes(testValue)) {
-						throw new RuntimeException("Unexpected Data");
+			if (null != testValue) {
+				r.openPayloadData((c)->{
+						if (!c.equalBytes(testValue)) {
+							throw new RuntimeException("Unexpected Data");
 					}
-				}
-			});
+				});
+			}
 			
 			if (--rf.countDownReceived<=0) {
 				synchronized(host) {
@@ -84,7 +80,9 @@ public class TestClientParallel implements GreenAppParallel {
 			return true;
 		}).getId();
 		
+	
 		
+		///TODO: we need to know how many sessions will be used??
 		GreenCommandChannel cmd1 = runtime.newCommandChannel(NET_REQUESTER);
 		cmd1.ensureHTTPClientRequesting(2, 30);
 		

@@ -22,10 +22,11 @@ public class TestFileServer implements GreenAppParallel {
     			.setHost("127.0.0.1")
     			.useInsecureServer();
     	
+    	conf.setConcurrentChannelsPerDecryptUnit(4);
     	builder.parallelism(4);
-		builder.limitThreads(8);
+		//builder.limitThreads(8);
 		//builder.defineRoute("/${path}");
-		builder.enableTelemetry(8091);
+		//builder.enableTelemetry(8091);
 		
 	}
 
