@@ -16,6 +16,7 @@ public class TestClientSequential implements GreenApp {
 	private long totalTime = 0;
 	private final int totalCycles;
     private final String route;
+    private final boolean enableTelemetry = false;
     
 	public TestClientSequential(int cycles, int port, String route) {
 		countDown = cycles;
@@ -27,7 +28,10 @@ public class TestClientSequential implements GreenApp {
 	@Override
 	public void declareConfiguration(Builder builder) {
 		builder.useInsecureNetClient();
-		builder.enableTelemetry();
+		if (enableTelemetry) {
+			builder.enableTelemetry();
+		}
+		
 	}
 
 	@Override
@@ -37,9 +41,9 @@ public class TestClientSequential implements GreenApp {
 		runtime.addStartupListener(()->{
 			cmd1.publishTopic("makeCall");
 		});
-		
+				
 		GreenCommandChannel cmd3 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-		int id = runtime.addResponseListener((r)->{
+		runtime.addResponseListener((r)->{
 			long duration = System.nanoTime() - callTime;
 	
 			totalTime += duration;
@@ -54,14 +58,14 @@ public class TestClientSequential implements GreenApp {
 				cmd3.shutdown();
 				return true;
 			}
-		}).getId();
+		}).includeHTTPSession(session);
 		
 
 		GreenCommandChannel cmd2 = runtime.newCommandChannel(NET_REQUESTER);
 		runtime.addPubSubListener((t,p)->{
 			callTime = System.nanoTime();
 			
-			return cmd2.httpGet(session, route, id);
+			return cmd2.httpGet(session, route);
 		}).addSubscription("makeCall");
 	
 	}

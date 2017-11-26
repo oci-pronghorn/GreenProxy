@@ -17,15 +17,15 @@ import com.ociweb.pronghorn.pipe.ChannelReader;
 public class ListenerBehavior implements RestListener {
     private final StringBuilder route = new StringBuilder();
     private final StringBuilder headers = new StringBuilder();
-    private final int responseRoutingId;
+
     private final String routingTopic;
     private final GreenCommandChannel relayRequestChannel;
     private final HTTPSession session;
     private static final Logger logger = LoggerFactory.getLogger(ListenerBehavior.class);
 
-    public ListenerBehavior(String host, int port, GreenRuntime runtime, int responseRoutingId, String routingTopic) {
-        this.session = new HTTPSession(host, port, 0);
-        this.responseRoutingId = responseRoutingId;
+    public ListenerBehavior(String host, int port, GreenRuntime runtime, final HTTPSession session, String routingTopic) {
+        
+    	this.session = session;
         this.routingTopic = routingTopic;
         this.relayRequestChannel = runtime.newCommandChannel(NET_REQUESTER | DYNAMIC_MESSAGING);
         
@@ -53,7 +53,7 @@ public class ListenerBehavior implements RestListener {
         
         switch (httpRequestReader.getVerb()) {
             case GET:
-                if (!relayRequestChannel.httpGet(session, route, headers, responseRoutingId)) {
+                if (!relayRequestChannel.httpGet(session, route, headers)) {
                 	assert(false): "should not happen since we checked for room already";
                 }
                 logger.trace("Proxy has made GET call to {} {} with headers {}",session,route,headers);
@@ -64,7 +64,7 @@ public class ListenerBehavior implements RestListener {
             	Writable payload = writer -> httpRequestReader.openPayloadData(
             			reader -> reader.readInto(writer, reader.available()));
             	
-                if (!relayRequestChannel.httpPost(session, route, headers, payload, responseRoutingId)) {
+                if (!relayRequestChannel.httpPost(session, route, headers, payload)) {
                 	assert(false): "should not happen since we checked for room already";
                 }
                 

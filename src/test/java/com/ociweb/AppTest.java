@@ -19,10 +19,9 @@ import com.ociweb.gl.api.GreenRuntime;
 public class AppTest { 
 
 		private final long timeoutMS = 260_000;
-
+		private final byte[] data = "exampleResponse".getBytes();
 		
 		@Test
-		@Ignore
 	    public void testBackingServerSequential() {
 	    	GreenRuntime.run(new TestServer(false, 8082, false));
 	    	waitForServer("http://127.0.0.1:8082/");
@@ -38,13 +37,11 @@ public class AppTest {
 	    	waitForServer("http://127.0.0.1:8082/");
 	    	String route = "/testPage";
 	    	
-	    	//NOTE: server is picking the same route for every call??
-	    	
 	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
 	    	//		new TestClientBatch(20000, 50, 8082, route, true), timeoutMS);
 	    	
 	    	GreenRuntime.testConcurrentUntilShutdownRequested(
-	    			new TestClientParallel(50000, 5, 8082, route, null), timeoutMS);
+	    			new TestClientParallel(50000, 5, 8082, route, data), timeoutMS);
 
 	    	
         }

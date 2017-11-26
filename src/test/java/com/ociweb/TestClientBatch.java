@@ -8,6 +8,7 @@ import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
 import com.ociweb.gl.api.HTTPSession;
+import com.ociweb.gl.api.ListenerFilter;
 import com.ociweb.gl.api.TimeTrigger;
 import com.ociweb.pronghorn.util.Appendables;
 
@@ -68,9 +69,8 @@ public class TestClientBatch implements GreenApp {
 
 	@Override
 	public void declareBehavior(final GreenRuntime runtime) {
-		
-				
-		int id = runtime.addResponseListener((r)->{
+						
+		ListenerFilter respConf = runtime.addResponseListener((r)->{
 			
 			long startTime = callTime[inFlightMask & (int)callTimeTail++];
 			if (0==startTime) {
@@ -96,23 +96,24 @@ public class TestClientBatch implements GreenApp {
 				runtime.shutdownRuntime();
 			}
 			return true;
-		}).getId();
+		});
 		
+		int x = multiplier;
+		while (--x >= 0) {
+			respConf.includeHTTPSession(sessions[x]);//TODO: need method for accept all..
+		}
+		////
 		
 		GreenCommandChannel cmd1 = runtime.newCommandChannel(NET_REQUESTER);
 		cmd1.ensureHTTPClientRequesting(12, 30);
 		
 		runtime.addTimePulseListener((t,i)->{
-			
-//			//TODO: this is protecting against an overload bug which happens in the client.
-//			if (callTimeHead!=callTimeTail) {
-//				return;//never call when we have requests in flight
-//			}
+
 			int m = multiplier;
 			while (--m >= 0) {
 				if (countDownSent>0) {
 					if (callTimeHead-callTimeTail<inFlight) {
-						if (cmd1.httpGet(sessions[m], route, id)) {
+						if (cmd1.httpGet(sessions[m], route)) {
 							//NOTE: these already have time for get calls sitting
 							//      in the outgoing pipe, if that pipe is long
 							callTime[inFlightMask & (int)callTimeHead++] = System.nanoTime();
@@ -128,11 +129,6 @@ public class TestClientBatch implements GreenApp {
 			
 		});
 		
-		
-
-		
-
-	
 	}
 
 }

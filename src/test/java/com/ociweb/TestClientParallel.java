@@ -56,7 +56,7 @@ public class TestClientParallel implements GreenAppParallel {
 		HTTPSession session = new HTTPSession(host,port,instance++);
 		
 		
-		final int id = runtime.addResponseListener((r)->{
+		runtime.addResponseListener((r)->{
 			long duration = System.nanoTime()-callTime[inFlightMask & (int)rf.callTimeTail++];
 			
 			rf.totalTime += duration;
@@ -78,9 +78,8 @@ public class TestClientParallel implements GreenAppParallel {
 				runtime.shutdownRuntime();
 			}
 			return true;
-		}).getId();
-		
-	
+		}).includeHTTPSession(session);
+			
 		
 		///TODO: we need to know how many sessions will be used??
 		GreenCommandChannel cmd1 = runtime.newCommandChannel(NET_REQUESTER);
@@ -90,7 +89,7 @@ public class TestClientParallel implements GreenAppParallel {
 			
 				if (sf.countDownSent>0) {
 					
-						if (cmd1.httpGet(session, route, id)) {
+						if (cmd1.httpGet(session, route)) {
 							//NOTE: these already have time for get calls sitting
 							//      in the outgoing pipe, if that pipe is long
 							callTime[inFlightMask & (int)sf.callTimeHead++] = System.nanoTime();

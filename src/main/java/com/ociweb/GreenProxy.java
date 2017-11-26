@@ -6,6 +6,7 @@ import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenRuntime;
 import com.ociweb.gl.api.HTTPServerConfig;
+import com.ociweb.gl.api.HTTPSession;
 
 public class GreenProxy implements GreenApp
 {
@@ -39,12 +40,17 @@ public class GreenProxy implements GreenApp
 
     @Override
     public void declareBehavior(GreenRuntime runtime) {
-        int responseRoutingId = runtime.addResponseListener(
+    	HTTPSession session = new HTTPSession(host, port, 0);
+    	
+        runtime.addResponseListener(
         				new ResponseBehavior(runtime))
-        						.addSubscription(routingTopic).getId();
+        						.addSubscription(routingTopic)
+        						.includeHTTPSession(session);
+        
+        
         
         runtime.addRestListener(
-        				new ListenerBehavior(host, port, runtime, responseRoutingId, routingTopic))
+        				new ListenerBehavior(host, port, runtime, session, routingTopic))
         						.includeAllRoutes();
         
     }
