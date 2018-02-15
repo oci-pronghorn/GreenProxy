@@ -16,21 +16,34 @@ public class TestClientSequential implements GreenApp {
 	private long totalTime = 0;
 	private final int totalCycles;
     private final String route;
-    private final boolean enableTelemetry = false;
+    private final boolean enableTelemetry;
     
-	public TestClientSequential(int cycles, int port, String route) {
+    private static final String STARTUP_NAME   = "startup";
+    private static final String CALLER_NAME    = "caller";
+    private static final String RESPONDER_NAME = "responder";
+    private static final String CALL_TOPIC     = "makeCall";
+        
+	public TestClientSequential(int cycles, int port, String route, boolean enableTelemetry) {
 		countDown = cycles;
 		totalCycles = cycles;
 		session = new HTTPSession("127.0.0.1",port);
 		this.route = route;
+		this.enableTelemetry = enableTelemetry;
 	}
 	
 	@Override
 	public void declareConfiguration(Builder builder) {
 		builder.useInsecureNetClient();
+		builder.limitThreads(2);
 		if (enableTelemetry) {
 			builder.enableTelemetry();
 		}
+		
+		//ScriptedNonThreadScheduler.debug = true;
+		
+		//use private topics
+		//builder.definePrivateTopic(STARTUP_NAME, CALLER_NAME, CALL_TOPIC);
+		//builder.definePrivateTopic(RESPONDER_NAME, CALLER_NAME, CALL_TOPIC);
 		
 	}
 
@@ -38,18 +51,18 @@ public class TestClientSequential implements GreenApp {
 	public void declareBehavior(GreenRuntime runtime) {
 		
 		GreenCommandChannel cmd1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-		runtime.addStartupListener(()->{
-			cmd1.publishTopic("makeCall");
+		runtime.addStartupListener(STARTUP_NAME, ()->{
+			cmd1.publishTopic(CALL_TOPIC);
 		});
 				
 		GreenCommandChannel cmd3 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-		runtime.addResponseListener((r)->{
+		runtime.addResponseListener(RESPONDER_NAME, (r)->{
 			long duration = System.nanoTime() - callTime;
-	
+				
 			totalTime += duration;
 			
 			if (--countDown>0) {
-				return cmd3.publishTopic("makeCall");
+				return cmd3.publishTopic(CALL_TOPIC);
 			} else {
 				System.out.println();
 				Appendables.appendNearestTimeUnit(System.out, totalTime/totalCycles, " latency on "+session);
@@ -62,11 +75,10 @@ public class TestClientSequential implements GreenApp {
 		
 
 		GreenCommandChannel cmd2 = runtime.newCommandChannel(NET_REQUESTER);
-		runtime.addPubSubListener((t,p)->{
+		runtime.addPubSubListener(CALLER_NAME, (t,p)->{
 			callTime = System.nanoTime();
-			
 			return cmd2.httpGet(session, route);
-		}).addSubscription("makeCall");
+		}).addSubscription(CALL_TOPIC);
 	
 	}
 

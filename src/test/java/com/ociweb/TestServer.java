@@ -23,17 +23,17 @@ public class TestServer implements GreenAppParallel  {
 	@Override
 	public void declareConfiguration(Builder builder) {
 		HTTPServerConfig conf = builder.useHTTP1xServer(port).setHost("127.0.0.1");
-
-		conf.setConcurrentChannelsPerDecryptUnit(5);
-		builder.parallelism(10);
-		conf.setConcurrentChannelsPerEncryptUnit(5);
+		
+		conf.setConcurrentChannelsPerDecryptUnit(3);
+		builder.parallelism(2);
+		conf.setConcurrentChannelsPerEncryptUnit(3);
 		
 		if (!tls) {
 			conf.useInsecureServer();
 		}
 				
 		builder.defineRoute("/testPage");
-
+		builder.limitThreads(4);
 		if (telemtry) {
 			builder.enableTelemetry();
 		}

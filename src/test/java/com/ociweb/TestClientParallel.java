@@ -1,12 +1,15 @@
 package com.ociweb;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.gl.api.Builder;
-import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenAppParallel;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
 import com.ociweb.gl.api.HTTPSession;
-import com.ociweb.pronghorn.util.Appendables;
+import com.ociweb.pronghorn.stage.scheduling.ElapsedTimeRecorder;
 
 public class TestClientParallel implements GreenAppParallel {
 
@@ -18,6 +21,7 @@ public class TestClientParallel implements GreenAppParallel {
 	private int instance = 0;
 	private final int countPerTrack;
 	private final String route;
+	private static final Logger logger = LoggerFactory.getLogger(TestClientParallel.class);
 	
 	public TestClientParallel(int cycles, int parallel, int port, String route, byte[] testValue) {
 		this.port = port;
@@ -34,8 +38,8 @@ public class TestClientParallel implements GreenAppParallel {
 		builder.useInsecureNetClient();
 		builder.parallelism(parallel);
 		builder.setTimerPulseRate(1);
-		//builder.enableTelemetry(8099);
-		//builder.limitThreads(20);
+		builder.enableTelemetry(8099);
+	
 	}
 
 	@Override
@@ -44,38 +48,55 @@ public class TestClientParallel implements GreenAppParallel {
 
 	@Override
 	public void declareParallelBehavior(GreenRuntime runtime) {
+			
+		//immutable
+		final HTTPSession session = new HTTPSession(host,port,instance++);
 		
-		final int inFlightBits = 8;
-		final int inFlightSize = 1<<inFlightBits;
-		final int inFlightMask = inFlightSize-1;
-		final long[] callTime = new long[inFlightSize];
 		
-		final SenderFields sf = new SenderFields(countPerTrack);		
+		final SenderFields sf = new SenderFields(countPerTrack);
 		final ReceiverFields rf = new ReceiverFields(countPerTrack);
-				
-		HTTPSession session = new HTTPSession(host,port,instance++);
-		
-		
 		runtime.addResponseListener((r)->{
-			long duration = System.nanoTime()-callTime[inFlightMask & (int)rf.callTimeTail++];
-			
-			rf.totalTime += duration;
-			
-			if (null != testValue) {
-				r.openPayloadData((c)->{
-						if (!c.equalBytes(testValue)) {
-							throw new RuntimeException("Unexpected Data");
-					}
-				});
-			}
-			
-			if (--rf.countDownReceived<=0) {
-				synchronized(host) {
-					System.out.println();
-					Appendables.appendNearestTimeUnit(System.out, rf.totalTime/countPerTrack, " latency \n");
-					System.out.println();
+
+		//	System.err.println(rf.countDownReceived);
+			if (--rf.countDownReceived>0) {
+				
+				rf.receivedTimes[rf.callTimeTail++] = System.nanoTime();
+				if (null != testValue) {
+					r.openPayloadData((c)->{
+							if (!c.equalBytes(testValue)) {
+								throw new RuntimeException("Unexpected Data");
+						}
+					});
 				}
-				runtime.shutdownRuntime();
+			} else {
+				if (--rf.countDownReceived == -1) {
+					//synchronized(host) {
+						
+						//System.err.println("instance "+instance);
+					    ElapsedTimeRecorder hist = new ElapsedTimeRecorder();
+					
+						
+						int c = sf.sentTimes.length;
+						while(--c>=0) {
+							long value = rf.receivedTimes[c] - sf.sentTimes[c];
+							if (value>0) {
+								ElapsedTimeRecorder.record(hist, value);
+							}
+						}
+						
+						
+						if (--instance==0) {
+							
+							hist.report(System.out);
+							
+							runtime.shutdownRuntime();
+						}
+					//}					
+					
+				}
+				
+			
+				
 			}
 			return true;
 		}).includeHTTPSession(session);
@@ -90,15 +111,18 @@ public class TestClientParallel implements GreenAppParallel {
 				if (sf.countDownSent>0) {
 					
 						if (cmd1.httpGet(session, route)) {
+
 							//NOTE: these already have time for get calls sitting
 							//      in the outgoing pipe, if that pipe is long
-							callTime[inFlightMask & (int)sf.callTimeHead++] = System.nanoTime();
+							sf.sentTimes[sf.callTimeHead++] = System.nanoTime();
+							
 							sf.countDownSent--;
 						}
 				
 				} else {
 					if (--sf.countDownSent==-1) {
 						System.out.println("Finished Sending to "+session);
+
 					}
 				}
 		});

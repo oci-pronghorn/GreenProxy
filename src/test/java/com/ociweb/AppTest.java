@@ -23,33 +23,39 @@ public class AppTest {
 		
 		@Test
 	    public void testBackingServerSequential() {
+			//ScriptedNonThreadScheduler.debug = true;
+			
 	    	GreenRuntime.run(new TestServer(false, 8082, false));
 	    	waitForServer("http://127.0.0.1:8082/");
 	    	String route = "/testPage";
 	    	
-		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(50000 ,8082,route), timeoutMS);	    	
-	    }
+	    	//TODO: the threads used should prevent the combination of the stages into a single run..
+		    GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientSequential(50000 ,8082, route, false), timeoutMS);	    	
+	    
+		   // GreenRuntime.testUntilShutdownRequested(new TestClientSequential(50000 ,8082, route, false), timeoutMS);	    	
+		    
+		}
 	    
 	    @Test
 	    @Ignore
-	    public void testBackingServerConcurrent() {
-	    	GreenRuntime.run(new TestServer(false, 8082, false));
-	    	waitForServer("http://127.0.0.1:8082/");
+	    public void skiptestBackingServerConcurrent() {
+	    	GreenRuntime.run(new TestServer(false, 8084, false));
+	    	waitForServer("http://127.0.0.1:8084/");
 	    	String route = "/testPage";
 	    	
 	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
-	    	//		new TestClientBatch(20000, 50, 8082, route, true), timeoutMS);
+	    	//		new TestClientBatch(20000, 50, 8084, route, true), timeoutMS);
 	    	
-	    	GreenRuntime.testConcurrentUntilShutdownRequested(
-	    			new TestClientParallel(50000, 5, 8082, route, data), timeoutMS);
+	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
+	    	GreenRuntime.testUntilShutdownRequested(
+	    			new TestClientParallel(20000, 2, 8084, route, data), timeoutMS);
 
 	    	
         }
 		
 		
 		@Test
-		@Ignore
-	    public void textProxyServer() {
+	    public void testProxyServer() {
 			
 			//startup backing server
 			GreenRuntime.run(new TestServer(false, 8082, false));
@@ -61,7 +67,7 @@ public class AppTest {
 	    	
 	    	String route = "/testPage";
 	    	//GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientParallel(12000,8786), timeoutMS);	 
-		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000, 8786, route), timeoutMS);	
+		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000, 8786, route, false), timeoutMS);	
 	    }
 
 		private void waitForServer(String url) {
@@ -94,7 +100,6 @@ public class AppTest {
 		}
 		
 		@Test
-		@Ignore
 	    public void testBackingFileServerSequential() {
 	    	GreenRuntime.run(new TestFileServer(8083));
 	    	waitForServer("http://127.0.0.1:8083/");
@@ -102,7 +107,8 @@ public class AppTest {
 
 	    	
 	    	//GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000, 8083, route), timeoutMS);	    	
-	    	//GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientSequential(20000, 8083, route), timeoutMS);	    	
+	    	boolean enableTelemetry = false;
+			GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientSequential(20000, 8083, route, enableTelemetry), timeoutMS);	    	
 
 	    	
 	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
@@ -114,8 +120,8 @@ public class AppTest {
 	    	//GreenRuntime.testUntilShutdownRequested(
 	    	//		new TestClientParallel(50000, 8, 8083, route, null), timeoutMS);
 	    	
-	    	GreenRuntime.testConcurrentUntilShutdownRequested(
-	    			new TestClientParallel(50000, 8, 8083, route, null), timeoutMS);
+	    	//GreenRuntime.testConcurrentUntilShutdownRequested(
+	    	//		new TestClientParallel(50000, 8, 8083, route, null), timeoutMS);
 	    	
 	    }
 		
