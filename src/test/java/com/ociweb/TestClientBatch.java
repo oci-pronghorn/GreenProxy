@@ -7,14 +7,14 @@ import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
-import com.ociweb.gl.api.HTTPSession;
+import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.gl.api.ListenerFilter;
 import com.ociweb.gl.api.TimeTrigger;
 import com.ociweb.pronghorn.util.Appendables;
 
 public class TestClientBatch implements GreenApp {
 	
-	private final HTTPSession[] sessions;
+	private final ClientHostPortInstance[] sessions;
 	private int countDownSent;
 	private int countDownReceived;
 	
@@ -44,9 +44,9 @@ public class TestClientBatch implements GreenApp {
 		this.multiplier = multiplier;
 		
 		int s = multiplier;
-		sessions = new HTTPSession[s];
+		sessions = new ClientHostPortInstance[s];
 		while (--s>=0) {		
-			sessions[s] = new HTTPSession("127.0.0.1",port,s);
+			sessions[s] = new ClientHostPortInstance("127.0.0.1",port,s);
 		}
 		
 		this.doTest = doTest;

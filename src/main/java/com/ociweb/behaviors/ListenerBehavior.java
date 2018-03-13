@@ -6,7 +6,8 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
 import com.ociweb.gl.api.HTTPRequestReader;
-import com.ociweb.gl.api.HTTPSession;
+import com.ociweb.gl.api.HeaderWriter;
+import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.gl.api.RestListener;
 import com.ociweb.gl.api.WaitFor;
 import com.ociweb.gl.api.Writable;
@@ -20,10 +21,10 @@ public class ListenerBehavior implements RestListener {
 
     private final String routingTopic;
     private final GreenCommandChannel relayRequestChannel;
-    private final HTTPSession session;
+    private final ClientHostPortInstance session;
     private static final Logger logger = LoggerFactory.getLogger(ListenerBehavior.class);
 
-    public ListenerBehavior(String host, int port, GreenRuntime runtime, final HTTPSession session, String routingTopic) {
+    public ListenerBehavior(String host, int port, GreenRuntime runtime, final ClientHostPortInstance session, String routingTopic) {
         
     	this.session = session;
         this.routingTopic = routingTopic;
@@ -49,11 +50,12 @@ public class ListenerBehavior implements RestListener {
         httpRequestReader.getRoutePath(route);
 
         headers.setLength(0);
-        prepareHeadersForProxiedRequest(httpRequestReader, headers);
-        
+    
         switch (httpRequestReader.getVerb()) {
             case GET:
-                if (!relayRequestChannel.httpGet(session, route, headers)) {
+                if (!relayRequestChannel.httpGet(session, route, (w)->{ 
+                	headersForProxiedRequest(httpRequestReader,w);
+                	})) {
                 	assert(false): "should not happen since we checked for room already";
                 }
                 logger.trace("Proxy has made GET call to {} {} with headers {}",session,route,headers);
@@ -64,7 +66,9 @@ public class ListenerBehavior implements RestListener {
             	Writable payload = writer -> httpRequestReader.openPayloadData(
             			reader -> reader.readInto(writer, reader.available()));
             	
-                if (!relayRequestChannel.httpPost(session, route, headers, payload)) {
+                if (!relayRequestChannel.httpPost(session, route, (w)->{
+                	headersForProxiedRequest(httpRequestReader,w);
+                }, payload)) {
                 	assert(false): "should not happen since we checked for room already";
                 }
                 
@@ -84,18 +88,15 @@ public class ListenerBehavior implements RestListener {
         return true;
     }
 
-    private Appendable prepareHeadersForProxiedRequest(HTTPRequestReader httpRequestReader, StringBuilder destination) {
+    private void headersForProxiedRequest(HTTPRequestReader httpRequestReader, HeaderWriter writer) {
 
         httpRequestReader.visitHeaders((HTTPHeader header, ChannelReader channelReader) ->  {
             if (   (header != HTTPHeaderDefaults.HOST)
             	&& (header != HTTPHeaderDefaults.CONNECTION)	){
-            	
-                destination.append(header.writingRoot());
-                header.writeValue(destination, httpRequestReader.getSpec(), channelReader);
-                destination.append("\r\n");
+            	                
+            	writer.write(header, httpRequestReader.getSpec(), channelReader);
+            	 
             }
         });
-
-        return destination;
     }
 }

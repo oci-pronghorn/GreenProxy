@@ -22,10 +22,13 @@ public class TestServer implements GreenAppParallel  {
 	
 	@Override
 	public void declareConfiguration(Builder builder) {
+	
+		builder.setDefaultRate(2_000);
+		
 		HTTPServerConfig conf = builder.useHTTP1xServer(port).setHost("127.0.0.1");
 		
 		conf.setConcurrentChannelsPerDecryptUnit(3);
-		builder.parallelism(2);
+		builder.parallelTracks(2);
 		conf.setConcurrentChannelsPerEncryptUnit(3);
 		
 		if (!tls) {
@@ -43,7 +46,6 @@ public class TestServer implements GreenAppParallel  {
 
 	@Override
 	public void declareBehavior(GreenRuntime runtime) {
-		
 	}
 
 	@Override

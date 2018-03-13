@@ -8,7 +8,7 @@ import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenAppParallel;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
-import com.ociweb.gl.api.HTTPSession;
+import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.pronghorn.stage.scheduling.ElapsedTimeRecorder;
 
 public class TestClientParallel implements GreenAppParallel {
@@ -36,7 +36,7 @@ public class TestClientParallel implements GreenAppParallel {
 	public void declareConfiguration(Builder builder) {
 		
 		builder.useInsecureNetClient();
-		builder.parallelism(parallel);
+		builder.parallelTracks(parallel);
 		builder.setTimerPulseRate(1);
 		builder.enableTelemetry(8099);
 	
@@ -50,7 +50,7 @@ public class TestClientParallel implements GreenAppParallel {
 	public void declareParallelBehavior(GreenRuntime runtime) {
 			
 		//immutable
-		final HTTPSession session = new HTTPSession(host,port,instance++);
+		final ClientHostPortInstance session = new ClientHostPortInstance(host,port,instance++);
 		
 		
 		final SenderFields sf = new SenderFields(countPerTrack);

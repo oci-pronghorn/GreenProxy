@@ -6,7 +6,7 @@ import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenRuntime;
 import com.ociweb.gl.api.HTTPServerConfig;
-import com.ociweb.gl.api.HTTPSession;
+import com.ociweb.gl.api.ClientHostPortInstance;
 
 public class GreenProxy implements GreenApp
 {
@@ -40,7 +40,7 @@ public class GreenProxy implements GreenApp
 
     @Override
     public void declareBehavior(GreenRuntime runtime) {
-    	HTTPSession session = new HTTPSession(host, port, 0);
+    	ClientHostPortInstance session = new ClientHostPortInstance(host, port, 0);
     	
         runtime.addResponseListener(
         				new ResponseBehavior(runtime))

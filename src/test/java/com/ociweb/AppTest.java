@@ -30,14 +30,13 @@ public class AppTest {
 	    	String route = "/testPage";
 	    	
 	    	//TODO: the threads used should prevent the combination of the stages into a single run..
-		    GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientSequential(50000 ,8082, route, false), timeoutMS);	    	
+		   // GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientSequential(50000 ,8082, route, false), timeoutMS);	    	
 	    
-		   // GreenRuntime.testUntilShutdownRequested(new TestClientSequential(50000 ,8082, route, false), timeoutMS);	    	
+		    GreenRuntime.testUntilShutdownRequested(new TestClientSequential(50000 ,8082, route, false), timeoutMS);	    	
 		    
 		}
 	    
 	    @Test
-	    @Ignore
 	    public void skiptestBackingServerConcurrent() {
 	    	GreenRuntime.run(new TestServer(false, 8084, false));
 	    	waitForServer("http://127.0.0.1:8084/");
@@ -108,7 +107,7 @@ public class AppTest {
 	    	
 	    	//GreenRuntime.testUntilShutdownRequested(new TestClientSequential(20000, 8083, route), timeoutMS);	    	
 	    	boolean enableTelemetry = false;
-			GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientSequential(20000, 8083, route, enableTelemetry), timeoutMS);	    	
+			GreenRuntime.testConcurrentUntilShutdownRequested(new TestClientSequential(100000, 8083, route, enableTelemetry), timeoutMS);	    	
 
 	    	
 	    	//GreenRuntime.testConcurrentUntilShutdownRequested(

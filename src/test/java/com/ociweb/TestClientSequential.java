@@ -4,12 +4,12 @@ import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
-import com.ociweb.gl.api.HTTPSession;
+import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.pronghorn.util.Appendables;
 
 public class TestClientSequential implements GreenApp {
 	
-	private final HTTPSession session;
+	private final ClientHostPortInstance session;
 	private int countDown;
 	private long callTime;
 	
@@ -26,7 +26,7 @@ public class TestClientSequential implements GreenApp {
 	public TestClientSequential(int cycles, int port, String route, boolean enableTelemetry) {
 		countDown = cycles;
 		totalCycles = cycles;
-		session = new HTTPSession("127.0.0.1",port);
+		session = new ClientHostPortInstance("127.0.0.1",port);
 		this.route = route;
 		this.enableTelemetry = enableTelemetry;
 	}
