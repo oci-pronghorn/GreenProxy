@@ -14,21 +14,25 @@ import com.ociweb.gl.api.Writable;
 import com.ociweb.pronghorn.network.config.HTTPHeader;
 import com.ociweb.pronghorn.network.config.HTTPHeaderDefaults;
 import com.ociweb.pronghorn.pipe.ChannelReader;
+import com.ociweb.pronghorn.struct.BStructFieldVisitor;
+import com.ociweb.pronghorn.struct.BStructSchema;
 
 public class ListenerBehavior implements RestListener {
-    private final StringBuilder route = new StringBuilder();
+    private final StringBuilder path = new StringBuilder();
     private final StringBuilder headers = new StringBuilder();
 
     private final String routingTopic;
     private final GreenCommandChannel relayRequestChannel;
     private final ClientHostPortInstance session;
     private static final Logger logger = LoggerFactory.getLogger(ListenerBehavior.class);
-
+    
+    
     public ListenerBehavior(String host, int port, GreenRuntime runtime, final ClientHostPortInstance session, String routingTopic) {
         
     	this.session = session;
         this.routingTopic = routingTopic;
         this.relayRequestChannel = runtime.newCommandChannel(NET_REQUESTER | DYNAMIC_MESSAGING);
+               
         
         //TODO: need better stack trace to find this chnannel when it is too small..
         relayRequestChannel.ensureHTTPClientRequesting(500, 1024);
@@ -46,19 +50,24 @@ public class ListenerBehavior implements RestListener {
     		return false; //try again later
     	}
 
-        route.setLength(0);
-        httpRequestReader.getRoutePath(route);
+
+    	
+        path.setLength(0);
+        httpRequestReader.getRoutePath(path);
+        assert(path.length()>0) : "bad path";
+        //System.err.println("proxy call to route:"+route);
+        
 
         headers.setLength(0);
     
         switch (httpRequestReader.getVerb()) {
             case GET:
-                if (!relayRequestChannel.httpGet(session, route, (w)->{ 
+                if (!relayRequestChannel.httpGet(session, path, (w)->{ 
                 	headersForProxiedRequest(httpRequestReader,w);
                 	})) {
                 	assert(false): "should not happen since we checked for room already";
                 }
-                logger.trace("Proxy has made GET call to {} {} with headers {}",session,route,headers);
+                logger.trace("Proxy has made GET call to {} {} with headers {}",session,path,headers);
                 
             case HEAD:
                 break;
@@ -66,7 +75,7 @@ public class ListenerBehavior implements RestListener {
             	Writable payload = writer -> httpRequestReader.openPayloadData(
             			reader -> reader.readInto(writer, reader.available()));
             	
-                if (!relayRequestChannel.httpPost(session, route, (w)->{
+                if (!relayRequestChannel.httpPost(session, path, (w)->{
                 	headersForProxiedRequest(httpRequestReader,w);
                 }, payload)) {
                 	assert(false): "should not happen since we checked for room already";
@@ -89,14 +98,16 @@ public class ListenerBehavior implements RestListener {
     }
 
     private void headersForProxiedRequest(HTTPRequestReader httpRequestReader, HeaderWriter writer) {
-
-        httpRequestReader.visitHeaders((HTTPHeader header, ChannelReader channelReader) ->  {
-            if (   (header != HTTPHeaderDefaults.HOST)
-            	&& (header != HTTPHeaderDefaults.CONNECTION)	){
-            	                
-            	writer.write(header, httpRequestReader.getSpec(), channelReader);
-            	 
-            }
-        });
+    	
+    	httpRequestReader.structured().visit(HTTPHeader.class, (header,reader) -> {
+				  if (   (header != HTTPHeaderDefaults.HOST)
+			            	&& (header != HTTPHeaderDefaults.CONNECTION)	){
+			            	                
+			            	writer.write((HTTPHeader)header,
+			            			     httpRequestReader.getSpec(), 
+			            			     reader);
+		           }
+		});
+	
     }
 }

@@ -35,8 +35,8 @@ public class TestServer implements GreenAppParallel  {
 			conf.useInsecureServer();
 		}
 				
-		builder.defineRoute("/testPage");
-		builder.limitThreads(4);
+		builder.defineRoute().path("/testPage");
+	
 		if (telemtry) {
 			builder.enableTelemetry();
 		}
