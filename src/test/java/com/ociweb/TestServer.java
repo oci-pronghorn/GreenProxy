@@ -5,6 +5,7 @@ import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenAppParallel;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
+import com.ociweb.gl.api.HTTPResponseService;
 import com.ociweb.gl.api.HTTPServerConfig;
 import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
 
@@ -50,12 +51,13 @@ public class TestServer implements GreenAppParallel  {
 
 	@Override
 	public void declareParallelBehavior(GreenRuntime runtime) {
-		final GreenCommandChannel cmd = runtime.newCommandChannel(NET_RESPONDER);
+		final GreenCommandChannel cmd = runtime.newCommandChannel();
+		final HTTPResponseService responseService = cmd.newHTTPResponseService();
 		
 		runtime.addRestListener((r)->{
 			
 			
-			return cmd.publishHTTPResponse(r, 200, HTTPContentTypeDefaults.TXT, (w)->{
+			return responseService.publishHTTPResponse(r, 200, HTTPContentTypeDefaults.TXT, (w)->{
 				w.append("exampleResponse");
 			});
 			

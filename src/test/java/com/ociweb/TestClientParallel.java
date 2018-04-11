@@ -8,6 +8,7 @@ import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenAppParallel;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
+import com.ociweb.gl.api.HTTPPublishService;
 import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.pronghorn.stage.scheduling.ElapsedTimeRecorder;
 
@@ -91,26 +92,22 @@ public class TestClientParallel implements GreenAppParallel {
 							
 							runtime.shutdownRuntime();
 						}
-					//}					
-					
+					//}	
 				}
-				
-			
-				
 			}
 			return true;
 		}).includeHTTPSession(session);
 			
 		
 		///TODO: we need to know how many sessions will be used??
-		GreenCommandChannel cmd1 = runtime.newCommandChannel(NET_REQUESTER);
-		cmd1.ensureHTTPClientRequesting(2, 30);
-		
+		GreenCommandChannel cmd1 = runtime.newCommandChannel();
+		HTTPPublishService clientService = cmd1.newHTTPClientService(2, 30);
+				
 		runtime.addTimePulseListener((t,i)->{
 			
 				if (sf.countDownSent>0) {
 					
-						if (cmd1.httpGet(session, route)) {
+						if (clientService.httpGet(session, route)) {
 
 							//NOTE: these already have time for get calls sitting
 							//      in the outgoing pipe, if that pipe is long

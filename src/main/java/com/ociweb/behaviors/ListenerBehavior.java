@@ -7,6 +7,7 @@ import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
 import com.ociweb.gl.api.HTTPRequestReader;
 import com.ociweb.gl.api.HeaderWriter;
+import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.gl.api.RestListener;
 import com.ociweb.gl.api.WaitFor;
@@ -15,7 +16,7 @@ import com.ociweb.pronghorn.network.config.HTTPHeader;
 import com.ociweb.pronghorn.network.config.HTTPHeaderDefaults;
 import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.struct.BStructFieldVisitor;
-import com.ociweb.pronghorn.struct.BStructSchema;
+import com.ociweb.pronghorn.struct.StructRegistry;
 
 public class ListenerBehavior implements RestListener {
     private final StringBuilder path = new StringBuilder();
@@ -41,8 +42,8 @@ public class ListenerBehavior implements RestListener {
     @Override
     public boolean restRequest(HTTPRequestReader httpRequestReader) {
 
-    	if (!relayRequestChannel.hasRoomFor(2)
-    		|| !relayRequestChannel.hasRoomForHTTP(1)) {
+    	if (!MsgCommandChannel.hasRoomFor(relayRequestChannel,2)
+    		|| !MsgCommandChannel.hasRoomForHTTP(relayRequestChannel,1)) {
     		return false;
     	}
     	if (!relayRequestChannel.publishTopic(routingTopic, httpRequestReader::handoff, WaitFor.All)) {

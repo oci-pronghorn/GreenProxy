@@ -62,7 +62,7 @@ public class AppTest {
 	    	
 	    	
 	    	String route = "/testPage";
-	    	int cyclesPerTrack = 100000;
+	    	int cyclesPerTrack = 10000;
 			ParallelClientLoadTesterConfig config1 = 
 					new ParallelClientLoadTesterConfig(1, cyclesPerTrack, 8786, route, false);
 			ParallelClientLoadTesterPayload payload = null;

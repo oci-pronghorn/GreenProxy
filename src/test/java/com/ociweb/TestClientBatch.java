@@ -7,6 +7,7 @@ import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
+import com.ociweb.gl.api.HTTPPublishService;
 import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.gl.api.ListenerFilter;
 import com.ociweb.gl.api.TimeTrigger;
@@ -104,8 +105,8 @@ public class TestClientBatch implements GreenApp {
 		}
 		////
 		
-		GreenCommandChannel cmd1 = runtime.newCommandChannel(NET_REQUESTER);
-		cmd1.ensureHTTPClientRequesting(12, 30);
+		GreenCommandChannel cmd1 = runtime.newCommandChannel();
+		HTTPPublishService clientService = cmd1.newHTTPClientService(12, 30);
 		
 		runtime.addTimePulseListener((t,i)->{
 
@@ -113,7 +114,7 @@ public class TestClientBatch implements GreenApp {
 			while (--m >= 0) {
 				if (countDownSent>0) {
 					if (callTimeHead-callTimeTail<inFlight) {
-						if (cmd1.httpGet(sessions[m], route)) {
+						if (clientService.httpGet(sessions[m], route)) {
 							//NOTE: these already have time for get calls sitting
 							//      in the outgoing pipe, if that pipe is long
 							callTime[inFlightMask & (int)callTimeHead++] = System.nanoTime();
