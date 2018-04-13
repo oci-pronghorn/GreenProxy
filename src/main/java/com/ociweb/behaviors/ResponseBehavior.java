@@ -20,7 +20,7 @@ public class ResponseBehavior implements PubSubListener, HTTPResponseListener {
 
     public ResponseBehavior(GreenRuntime runtime) {
         this.responseRelayChannel = runtime.newCommandChannel();
-        responseRelayChannel.ensureHTTPServerResponse(500, 1024);
+
         this.httpResponder = new HTTPResponder(responseRelayChannel, 256 * 1024);
     }
 
