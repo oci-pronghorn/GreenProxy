@@ -5,7 +5,7 @@ import com.ociweb.behaviors.ResponseBehavior;
 import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenRuntime;
-import com.ociweb.gl.api.HTTPServerConfig;
+import com.ociweb.pronghorn.network.HTTPServerConfig;
 import com.ociweb.gl.api.ClientHostPortInstance;
 
 public class GreenProxy implements GreenApp

@@ -5,9 +5,8 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
-import com.ociweb.gl.api.HTTPPublishService;
+import com.ociweb.gl.api.HTTPRequestService;
 import com.ociweb.gl.api.HTTPRequestReader;
-import com.ociweb.gl.api.HeaderWriter;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.PubSubService;
 import com.ociweb.gl.api.ClientHostPortInstance;
@@ -16,8 +15,9 @@ import com.ociweb.gl.api.WaitFor;
 import com.ociweb.gl.api.Writable;
 import com.ociweb.pronghorn.network.config.HTTPHeader;
 import com.ociweb.pronghorn.network.config.HTTPHeaderDefaults;
+import com.ociweb.pronghorn.network.http.HeaderWriter;
 import com.ociweb.pronghorn.pipe.ChannelReader;
-import com.ociweb.pronghorn.struct.BStructFieldVisitor;
+import com.ociweb.pronghorn.struct.StructFieldVisitor;
 import com.ociweb.pronghorn.struct.StructRegistry;
 
 public class ListenerBehavior implements RestListener {
@@ -27,7 +27,7 @@ public class ListenerBehavior implements RestListener {
     private final String routingTopic; 
     private final ClientHostPortInstance session;
 	
-    private HTTPPublishService clientService;
+    private HTTPRequestService clientService;
 	private PubSubService pubSubService;
 	private GreenCommandChannel relayRequestChannel;
 	
@@ -49,8 +49,8 @@ public class ListenerBehavior implements RestListener {
     public boolean restRequest(HTTPRequestReader httpRequestReader) {
 
     	//TODO: need a better way to call this...
-    	if (!MsgCommandChannel.hasRoomFor(relayRequestChannel,2)
-    		|| !MsgCommandChannel.hasRoomForHTTP(relayRequestChannel,1)) {
+    	if (!pubSubService.hasRoomFor(2)
+    		|| !clientService.hasRoomFor(1)) {
     		return false;
     	}
     	if (!pubSubService.publishTopic(routingTopic, httpRequestReader::handoff, WaitFor.All)) {
@@ -110,7 +110,7 @@ public class ListenerBehavior implements RestListener {
     	httpRequestReader.structured().visit(HTTPHeader.class, (header,reader) -> {
 				  if (   (header != HTTPHeaderDefaults.HOST)
 			            	&& (header != HTTPHeaderDefaults.CONNECTION)	){
-			            	                
+			  
 			            	writer.write((HTTPHeader)header,
 			            			     httpRequestReader.getSpec(), 
 			            			     reader);

@@ -4,7 +4,7 @@ import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
-import com.ociweb.gl.api.HTTPPublishService;
+import com.ociweb.gl.api.HTTPRequestService;
 import com.ociweb.gl.api.PubSubService;
 import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.pronghorn.util.Appendables;
@@ -81,7 +81,7 @@ public class TestClientSequential implements GreenApp {
 		
 
 		GreenCommandChannel cmd2 = runtime.newCommandChannel();
-		HTTPPublishService clientService2 = cmd2.newHTTPClientService();
+		HTTPRequestService clientService2 = cmd2.newHTTPClientService();
 		
 		runtime.addPubSubListener(CALLER_NAME, (t,p)->{
 			callTime = System.nanoTime();

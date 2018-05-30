@@ -8,7 +8,7 @@ import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenAppParallel;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
-import com.ociweb.gl.api.HTTPPublishService;
+import com.ociweb.gl.api.HTTPRequestService;
 import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.pronghorn.stage.scheduling.ElapsedTimeRecorder;
 
@@ -101,7 +101,7 @@ public class TestClientParallel implements GreenAppParallel {
 		
 		///TODO: we need to know how many sessions will be used??
 		GreenCommandChannel cmd1 = runtime.newCommandChannel();
-		HTTPPublishService clientService = cmd1.newHTTPClientService(2, 30);
+		HTTPRequestService clientService = cmd1.newHTTPClientService(2, 30);
 				
 		runtime.addTimePulseListener((t,i)->{
 			

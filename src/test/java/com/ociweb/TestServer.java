@@ -6,7 +6,7 @@ import com.ociweb.gl.api.GreenAppParallel;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
 import com.ociweb.gl.api.HTTPResponseService;
-import com.ociweb.gl.api.HTTPServerConfig;
+import com.ociweb.pronghorn.network.HTTPServerConfig;
 import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
 
 public class TestServer implements GreenAppParallel  {

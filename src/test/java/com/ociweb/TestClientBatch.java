@@ -7,7 +7,7 @@ import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenApp;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.GreenRuntime;
-import com.ociweb.gl.api.HTTPPublishService;
+import com.ociweb.gl.api.HTTPRequestService;
 import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.gl.api.ListenerFilter;
 import com.ociweb.gl.api.TimeTrigger;
@@ -106,7 +106,7 @@ public class TestClientBatch implements GreenApp {
 		////
 		
 		GreenCommandChannel cmd1 = runtime.newCommandChannel();
-		HTTPPublishService clientService = cmd1.newHTTPClientService(12, 30);
+		HTTPRequestService clientService = cmd1.newHTTPClientService(12, 30);
 		
 		runtime.addTimePulseListener((t,i)->{
 
